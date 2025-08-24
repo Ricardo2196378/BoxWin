@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main  # ou a branch que você usa
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: |
+        npm install -g expo-cli
+        npm install
+
+    - name: Login to Expo
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        expo login --non-interactive --token $EXPO_TOKEN
+
+    - name: Build Android APK
+      run: |
+        expo build:android -t apk --non-interactive
+
+    - name: Rename APK to BoxWin.apk
+      run: |
+        mkdir -p dist
+        mv $(find . -name "*.apk" | head -n 1) dist/BoxWin.apk
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: BoxWin-APK
+        path: dist/BoxWin.apk
